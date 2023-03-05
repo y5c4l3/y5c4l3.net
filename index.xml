@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>y5c4l3</title>
+    <link>https://y5c4l3.net/</link>
+    <description>Recent content on y5c4l3</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>© 2023 y5c4l3</copyright>
+    <lastBuildDate>Tue, 31 Jan 2023 15:10:41 +0000</lastBuildDate><atom:link href="https://y5c4l3.net/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>About</title>
+      <link>https://y5c4l3.net/about/</link>
+      <pubDate>Tue, 31 Jan 2023 15:10:41 +0000</pubDate>
+      
+      <guid>https://y5c4l3.net/about/</guid>
+      <description>y5c4l3 is a final year undergraduate from China🇨🇳. He mainly focused on computer science especially in the fields of programming language theories, computer graphics and software security.</description>
+    </item>
+    
+    <item>
+      <title>Hello, world!</title>
+      <link>https://y5c4l3.net/2023/01/31/hello-world/</link>
+      <pubDate>Tue, 31 Jan 2023 15:09:05 +0000</pubDate>
+      
+      <guid>https://y5c4l3.net/2023/01/31/hello-world/</guid>
+      <description>Hello, world!
+$ \text{Hello, \KaTeX!} $</description>
+    </item>
+    
+    <item>
+      <title>Archive</title>
+      <link>https://y5c4l3.net/archive/</link>
+      <pubDate>Sat, 10 Jul 2021 11:24:06 +0800</pubDate>
+      
+      <guid>https://y5c4l3.net/archive/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

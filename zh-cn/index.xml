@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>y5c4l3</title>
+    <link>https://y5c4l3.net/zh-cn/</link>
+    <description>Recent content on y5c4l3</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>© 2023 y5c4l3</copyright>
+    <lastBuildDate>Tue, 31 Jan 2023 15:10:41 +0000</lastBuildDate><atom:link href="https://y5c4l3.net/zh-cn/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>关于</title>
+      <link>https://y5c4l3.net/zh-cn/about/</link>
+      <pubDate>Tue, 31 Jan 2023 15:10:41 +0000</pubDate>
+      
+      <guid>https://y5c4l3.net/zh-cn/about/</guid>
+      <description>y5c4l3 是一名来自中国🇨🇳的 2023 年应届本科生. 他主要聚焦于计算机科学中的编程语言理论、图形学以及软件与系统安全领域.</description>
+    </item>
+    
+    <item>
+      <title>你好，世界！</title>
+      <link>https://y5c4l3.net/zh-cn/2023/01/31/hello-world/</link>
+      <pubDate>Tue, 31 Jan 2023 15:09:05 +0000</pubDate>
+      
+      <guid>https://y5c4l3.net/zh-cn/2023/01/31/hello-world/</guid>
+      <description>你好，世界！
+$ \text{你好，\KaTeX!} $</description>
+    </item>
+    
+    <item>
+      <title>归档</title>
+      <link>https://y5c4l3.net/zh-cn/archive/</link>
+      <pubDate>Sat, 10 Jul 2021 11:24:06 +0800</pubDate>
+      
+      <guid>https://y5c4l3.net/zh-cn/archive/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>
