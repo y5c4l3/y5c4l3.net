@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta property="og:title" content="分布式 CADO-NFS 还原 RSA-512 密钥" />
+<meta property="og:description" content="简介 RSA 是目前全世界使用最广泛的公钥密码体系. 公钥密码体系中，有两类密钥：私钥与公钥. 私钥是由算法生成的，并由操作者妥善保管. 公钥是从私钥推导而出的，可以公开发布给任何人. 公钥及其对应的私钥为一对密钥.
+RSA 密钥的大小指的是 RSA 加密或解密运算中模的长度（按 bit 计算），它决定了密钥的整体安全性. 截至 2023 年 8 月，推荐的最小模长为 2048 位. 不过总有开发者罔顾安全性最佳实践，仍然在实际项目中使用 512 位 RSA 密钥.
+本文将演示如何使用 CADO-NFS 将 RSA-512 的公钥恢复成 PKCS#1 / PKCS#8 格式的私钥.
+免责声明: 本文仅供教育目的，作者不支持或鼓励任何非法活动. 本文提供的信息仅供参考，不应用于任何非法活动. 作者不对滥用本文提供的信息所造成的后果负责.
+RSA 小复习 形式化表述 选择两个素数 $p, q$ 将 $N:=pq$ 作为密钥的模.
+计算 $\lambda(N)=\lambda(pq)=\operatorname{lcm}(p-1,q-1)$.
+这里 $\lambda(n)$ is Carmichael 函数, 定义见 $\eqref{carmichael}$.
+$$ \begin{equation} \lambda(n):=\min\{m&gt;0: \forall a \in{}\mathbf{R}^*_n, a^m\equiv 1\pmod n\}\label{carmichael} \end{equation} $$
+其中 $\mathbf{R}^*_{n}{}:= \{i\in{}\mathbf{R}_n: \gcd(n, i) = 1\}$ 是模 $n$ 的简化剩余系." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://y5c4l3.net/zh-cn/2023/08/19/recovering-rsa-key-pair-with-cado-nfs/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2023-08-19T00:00:00+00:00" />
+<meta property="article:modified_time" content="2023-08-19T00:00:00+00:00" />
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="分布式 CADO-NFS 还原 RSA-512 密钥"/>
+<meta name="twitter:description" content="简介 RSA 是目前全世界使用最广泛的公钥密码体系. 公钥密码体系中，有两类密钥：私钥与公钥. 私钥是由算法生成的，并由操作者妥善保管. 公钥是从私钥推导而出的，可以公开发布给任何人. 公钥及其对应的私钥为一对密钥.
+RSA 密钥的大小指的是 RSA 加密或解密运算中模的长度（按 bit 计算），它决定了密钥的整体安全性. 截至 2023 年 8 月，推荐的最小模长为 2048 位. 不过总有开发者罔顾安全性最佳实践，仍然在实际项目中使用 512 位 RSA 密钥.
+本文将演示如何使用 CADO-NFS 将 RSA-512 的公钥恢复成 PKCS#1 / PKCS#8 格式的私钥.
+免责声明: 本文仅供教育目的，作者不支持或鼓励任何非法活动. 本文提供的信息仅供参考，不应用于任何非法活动. 作者不对滥用本文提供的信息所造成的后果负责.
+RSA 小复习 形式化表述 选择两个素数 $p, q$ 将 $N:=pq$ 作为密钥的模.
+计算 $\lambda(N)=\lambda(pq)=\operatorname{lcm}(p-1,q-1)$.
+这里 $\lambda(n)$ is Carmichael 函数, 定义见 $\eqref{carmichael}$.
+$$ \begin{equation} \lambda(n):=\min\{m&gt;0: \forall a \in{}\mathbf{R}^*_n, a^m\equiv 1\pmod n\}\label{carmichael} \end{equation} $$
+其中 $\mathbf{R}^*_{n}{}:= \{i\in{}\mathbf{R}_n: \gcd(n, i) = 1\}$ 是模 $n$ 的简化剩余系."/>
+
+  
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#262d33">
+  <title>
+    
+    Y5C4L3 - 分布式 CADO-NFS 还原 RSA-512 密钥
+    
+  </title>
+  
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+  
+  
+  
+  <link rel="stylesheet" href="/minima.1693470536.css">
+  
+  
+  <script defer type="text/javascript" src="/minima.1693470536.js"></script>
+  
+	
+	<link rel="alternate" hreflang="en" href="https://y5c4l3.net/2023/08/19/recovering-rsa-key-pair-with-cado-nfs/" title="EN">
+	
+
+</head>
+<script>
+  
+  let default_theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+
+  try {
+    const local = localStorage.getItem('theme')
+    if (local) {
+      default_theme = local
+    }
+    localStorage.setItem('theme', default_theme);
+    window.minima_theme = default_theme;
+    document.querySelector('html').classList.add(default_theme);
+  } catch (e) {
+    console.error(e);
+  }
+</script>
+
+
+
+<body>
+  <header class="mt-3 mb-6">
+  <div class="container mx-auto">
+    <nav class="flex justify-between items-center">
+      <div class="flex items-center">
+        
+        <div id="theme-switch" class="text-3xl cursor-pointer">🌝</div>
+      </div>
+      <ul class="flex items-center font-medium
+        whitespace-nowrap overflow-x-auto overflow-y-hidden">
+        
+        <li class="ml-1 mr-1"><a href="/zh-cn/">首页</a></li>
+        
+        <li class="ml-1 mr-1"><a href="/zh-cn/about">关于</a></li>
+        
+        <li class="ml-1 mr-1"><a href="/zh-cn/archive">归档</a></li>
+        
+        <li class="ml-1 mr-1"><a href="/zh-cn/tags">标签</a></li>
+        
+        <li class="ml-1 mr-1"><a href="/zh-cn/series">系列</a></li>
+        
+        <li class="ml-1 mr-1"><a href="/zh-cn/writing-guidelines">导则</a></li>
+        
+      </ul>
+      <ul class="flex item-center text-sm font-bold">
+        
+        <li class="ml-2"><a href="https://y5c4l3.net/">EN</a></li>
+        
+        <li class="ml-2"><a href="https://y5c4l3.net/zh-cn/">ZH</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</header>
+
+  
+<div class="container mx-auto">
+  <h1 class="text-4xl font-extrabold mt-6 mb-6">分布式 CADO-NFS 还原 RSA-512 密钥</h1>
+  <div class="mb-3 text-sm flex justify-between ">
+    <div>
+      
+      发布于 &mdash; 2023 年 8 月 19 日
+      
+      
+    </div>
+    
+  </div>
+  <main class="mb-8">
+    <p></p>
+    <article class="md">
+      <h1 id="简介">简介</h1>
+<p><abbr title="Rivest–Shamir–Adleman">RSA</abbr> 是目前全世界使用最广泛的公钥密码体系. 公钥密码体系中，有两类密钥：私钥与公钥. 私钥是由算法生成的，并由操作者妥善保管. 公钥是从私钥推导而出的，可以公开发布给任何人. 公钥及其对应的私钥为一对密钥.</p>
+<p>RSA 密钥的大小指的是 RSA 加密或解密运算中模的长度（按 bit 计算），它决定了密钥的整体安全性. 截至 2023 年 8 月，推荐的最小模长为 2048 位. 不过总有开发者罔顾安全性最佳实践，仍然在实际项目中使用 512 位 RSA 密钥.</p>
+<p>本文将演示如何使用 CADO-NFS 将 RSA-512 的公钥恢复成 <abbr title="Public-Key Cryptography Standards">PKCS</abbr>#1 / PKCS#8 格式的私钥.</p>
+<p><em><strong>免责声明</strong>: 本文仅供教育目的，作者不支持或鼓励任何非法活动. 本文提供的信息仅供参考，不应用于任何非法活动. 作者不对滥用本文提供的信息所造成的后果负责.</em></p>
+<h1 id="rsa-小复习">RSA 小复习</h1>
+<h2 id="形式化表述">形式化表述</h2>
+<ul>
+<li>
+<p>选择两个素数 $p, q$ 将 $N:=pq$ 作为密钥的模.</p>
+</li>
+<li>
+<p>计算 $\lambda(N)=\lambda(pq)=\operatorname{lcm}(p-1,q-1)$.</p>
+<p>这里 $\lambda(n)$ is <a href="https://en.wikipedia.org/wiki/Carmichael_function">Carmichael 函数</a>, 定义见 $\eqref{carmichael}$.</p>
+<p>$$
+\begin{equation}
+\lambda(n):=\min\{m&gt;0: \forall a \in{}\mathbf{R}^*_n, a^m\equiv 1\pmod n\}\label{carmichael}
+\end{equation}
+$$</p>
+<p>其中 $\mathbf{R}^*_{n}{}:= \{i\in{}\mathbf{R}_n: \gcd(n, i) = 1\}$ 是模 $n$ 的简化剩余系.</p>
+<p>许多教科书使用的是 <a href="https://en.wikipedia.org/wiki/Euler%27s_totient_function">Euler 函数</a> $\varphi(n)$，这不影响算法的正确性.</p>
+</li>
+<li>
+<p>选择一个公开指数 $e\neq 1$ 使得 $e\in{}\mathbf{R}^*_{\lambda(n)}$，即 $e$ 与 $\lambda(n)$ 互素.</p>
+</li>
+<li>
+<p>计算私有指数 $d:\equiv e^{-1}\pmod{\lambda(n)}$.</p>
+</li>
+<li>
+<p>对于端到端加密，加密机定义为 $E(m):\equiv m^e\pmod N$ 而解密机定义为 $D(m):\equiv m^d\pmod N$.</p>
+</li>
+<li>
+<p>签名机定义为 $\DeclareMathOperator*{\concat}{\Vert} S(m):=D( \operatorname{hash}(m))$</p>
+</li>
+</ul>
+<p>此处并不打算给出任何关于 RSA 正确性的证明，感兴趣的读者可以阅读 William Stein 在他的著作 <em>Elementary Number Theory: Primes, Congruences, and Secrets</em> 中的<a href="https://wstein.org/ent/ent.pdf">证明</a>.</p>
+<p>这里的形式化表述比较学院派，生活中的算法实现有更多苛刻的安全条件，例如 $p,q$ 间的距离要适度, 公开指数至少满足 $e&gt;2$ 的要求，并且密码学函数库往往用 $e:=65537$ 这一固定值作为公开指数，更多实践可参考<a href="https://en.wikipedia.org/wiki/RSA_(cryptosystem)#Security_and_practical_considerations">此处</a>.</p>
+<h2 id="现实中的-rsa-成分">现实中的 RSA 成分</h2>
+<p>从上面的形式化表述中，显然 3 元组 $(p, q, e)$ 能够唯一地决定一对 RSA 密钥. 理论上，一个 RSA 私钥成分的表示可以用 $(p, q, d)$ 而其对应的公钥成分就是 $(N, e)=(pq, e)$. 当然了，使用 $(p, q, e)$ 也能作为 RSA 私钥成分的一种表示方式.</p>
+<p>数学上来看，私钥的成分表示方式其实并不唯一，那么在现代的私钥文件中究竟存储了什么东西呢？换句话说，在 PKCS#1 / PKCS#8 这些私钥格式中，究竟存储了什么样的成分？事实上现代私钥格式中，<strong>为了权衡算法的时空性能，存储了更多的成分</strong>.</p>
+<h3 id="私钥成分">私钥成分</h3>
+<p>让 OpenSSL 给我们生成一个 RSA-512 私钥，并列出其成分：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ openssl genrsa <span class="m">512</span> <span class="p">|</span> tee sample.key <span class="p">|</span> openssl pkey -noout -text
+</span></span><span class="line"><span class="cl">Private-Key: <span class="o">(</span><span class="m">512</span> bit, <span class="m">2</span> primes<span class="o">)</span>
+</span></span><span class="line"><span class="cl">modulus:
+</span></span><span class="line"><span class="cl">    00:e8:b1:ea:27:bc:3a:a6:9f:53:48:24:9c:5a:9d:
+</span></span><span class="line"><span class="cl">    9e:64:af:12:3e:ae:db:46:f0:4d:99:55:61:fd:c2:
+</span></span><span class="line"><span class="cl">    c8:45:35:25:05:e6:7b:37:c0:cc:92:7a:45:c0:5b:
+</span></span><span class="line"><span class="cl">    01:a3:4c:4e:87:5b:70:48:62:05:2a:6e:c2:3a:6a:
+</span></span><span class="line"><span class="cl">    f0:07:92:61:ad
+</span></span><span class="line"><span class="cl">publicExponent: <span class="m">65537</span> <span class="o">(</span>0x10001<span class="o">)</span>
+</span></span><span class="line"><span class="cl">privateExponent:
+</span></span><span class="line"><span class="cl">    00:ca:ec:5c:86:ca:5f:5b:6f:15:f1:93:fb:c6:0a:
+</span></span><span class="line"><span class="cl">    2e:57:1f:55:89:d4:72:e5:2a:2a:81:cd:33:e7:58:
+</span></span><span class="line"><span class="cl">    35:ce:23:20:af:2c:e6:fd:39:4e:2f:a6:be:23:23:
+</span></span><span class="line"><span class="cl">    7f:e3:d2:f1:81:98:ef:48:91:a3:94:68:04:c6:a6:
+</span></span><span class="line"><span class="cl">    d3:49:df:a8:01
+</span></span><span class="line"><span class="cl">prime1:
+</span></span><span class="line"><span class="cl">    00:f6:a8:8b:b4:cb:45:0f:d8:b9:6b:de:32:31:87:
+</span></span><span class="line"><span class="cl">    c1:98:05:6d:d0:07:3d:c0:c0:8d:3d:5c:c1:1a:3a:
+</span></span><span class="line"><span class="cl">    64:7d:45
+</span></span><span class="line"><span class="cl">prime2:
+</span></span><span class="line"><span class="cl">    00:f1:81:fc:ee:f1:5b:01:58:0c:0a:92:e2:fe:84:
+</span></span><span class="line"><span class="cl">    17:f2:9d:f9:bb:e9:6a:4d:fd:77:56:37:32:76:68:
+</span></span><span class="line"><span class="cl">    54:15:49
+</span></span><span class="line"><span class="cl">exponent1:
+</span></span><span class="line"><span class="cl">    00:c2:d9:14:3b:c6:d3:90:98:18:a9:c0:86:10:20:
+</span></span><span class="line"><span class="cl">    78:eb:19:66:cd:0d:db:57:78:04:5a:f3:f9:cb:39:
+</span></span><span class="line"><span class="cl">    53:86:ad
+</span></span><span class="line"><span class="cl">exponent2:
+</span></span><span class="line"><span class="cl">    32:ff:5e:f8:d9:f0:7c:ad:2a:05:c5:94:b7:68:0f:
+</span></span><span class="line"><span class="cl">    62:85:27:6a:1d:d4:fb:d9:0d:2d:20:84:c0:6a:31:
+</span></span><span class="line"><span class="cl">    6f:39
+</span></span><span class="line"><span class="cl">coefficient:
+</span></span><span class="line"><span class="cl">    00:bf:63:63:7b:71:73:ab:59:66:7d:2e:6f:eb:8a:
+</span></span><span class="line"><span class="cl">    e3:88:a1:10:cb:db:5f:fb:d4:83:31:52:2d:97:6c:
+</span></span><span class="line"><span class="cl">    38:29:50
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>默认情况下 <code>openssl genrsa</code> 会生成 PKCS#8 的格式，上面的私钥中包含了：</p>
+<ul>
+<li><strong>modulus</strong> 对应了 RSA 的模 $N:=pq$</li>
+<li><strong>publicExponent</strong> 对应了公开指数 $e$, OpenSSL 在生成私钥时总使用固定值 $e:=65537$</li>
+<li><strong>privateExponent</strong> 对应了私有指数 $d:\equiv e^{-1}\pmod{\lambda(n)}$</li>
+<li><strong>prime1</strong> 和 <strong>prime2</strong> 对应了 $p$ 和 $q$</li>
+</ul>
+<p>那么 <strong>exponent1</strong>, <strong>exponent2</strong>, <strong>coefficient</strong> 究竟是什么东西?</p>
+<h4 id="crt-改进的快速幂">CRT 改进的快速幂</h4>
+<p>对解密机 $D(m):\equiv m^d\pmod N$ 与签名机 $S(m)$ 用<a href="https://en.wikipedia.org/wiki/Chinese_remainder_theorem">中国剩余定理（<abbr title="Chinese Remainder Theorem">CRT</abbr>）</a>变换后，会出现上面额外的成分，这是一种能够加速解密与签名过程的小技巧，本质上来说这是一种大数快速幂（取模）的算法，对于大数的乘法，无论采用何种算法（如 Karatsuba 或 FFT 等），其时间复杂度都不再能视作 $O(1)$，一般大数运算都会由密码学函数库提供.</p>
+<p>计算 $m^d\pmod N$ 等价于解方程 $\eqref{crt-1}$，显然有解</p>
+<p>$$
+\begin{equation}
+x\equiv m^d\pmod{pq}\label{crt-1}
+\end{equation}
+$$</p>
+<p>由于 $p,q$ 是素数，它们显然互素，即 $\gcd(p,q)=1$. 根据 CRT 的表述，方程 $\eqref{crt-1}$ 能拆开写成方程组 $\eqref{crt-2}$ 并拥有相同解集.</p>
+<p>$$
+\begin{equation}
+\left\{
+\begin{aligned}
+x&amp;\equiv m^d\pmod{p} \\
+x&amp;\equiv m^d\pmod{q}
+\end{aligned}
+\right.\label{crt-2}
+\end{equation}
+$$</p>
+<p>通过这样做，模 $N:=pq$ 在位数上已经被劈开分成了 $p,q$，自然地为 $d$ 的降幂提供了机会.</p>
+<p>对于一个素数，它的 Carmichael 函数值与 Euler 函数值相同，即</p>
+<p>$$
+\lambda(p)=\varphi(p)=p-1,\lambda(q)=\varphi(q)=q-1
+$$</p>
+<p>令 $d_p:\equiv d\pmod{\lambda(p)}$ 与 $d_q:\equiv d\pmod{\lambda(q)}$，即存在 $k_p,k_q\in\mathbb{Z}$ 使得</p>
+<p>$$
+d=k_p\lambda(p)+d_p=k_q\lambda(q)+d_q,
+$$</p>
+<p>通过应用 Euler 定理，整理得到降幂形式 $\eqref{crt-3}$，</p>
+<p>$$
+\begin{equation}
+\left\{
+\begin{aligned}
+x&amp;\equiv m^d\equiv m^{k_p\lambda(p)+d_p}\equiv m^{d_p}\pmod{p} \\
+x&amp;\equiv m^d\equiv m^{k_q\lambda(q)+d_q}\equiv m^{d_q}\pmod{q}
+\end{aligned}
+\right.\label{crt-3}
+\end{equation}
+$$</p>
+<p>这些更小的指数 $d_p$ 和 $d_q$ 在<a href="#%E7%A7%81%E9%92%A5%E6%88%90%E5%88%86">之前的成分列表</a>中叫做 <strong>exponent1</strong> 和 <strong>exponent2</strong>，在生成私钥时它们就已经算好这两个成分，并存储在私钥文件中.</p>
+<p>根据 CRT 方程组的算法，解为 $\eqref{crt-4}$</p>
+<p>$$
+\begin{equation}
+x\equiv m^{d_q} + q^*(m^{d_p}-m^{d_q})q \pmod{pq}\label{crt-4}
+\end{equation}
+$$</p>
+<p>其中 $q^*:\equiv q^{-1} \pmod p$，在<a href="#%E7%A7%81%E9%92%A5%E6%88%90%E5%88%86">之前的成分列表</a>中叫做 <strong>coefficient</strong>.</p>
+<p>综上所述，那些额外的成分一般叫做 CRT 成分，如下所示：</p>
+<ul>
+<li><strong>exponent1</strong>（对应 <strong>prime1</strong> $p$）定义为 $d_p:\equiv d\pmod{\lambda(p)}$, where $\lambda(p)=p-1$</li>
+<li><strong>exponent2</strong>（对应 <strong>prime2</strong> $q$）定义为 $d_q:\equiv d\pmod{\lambda(q)}$, where $\lambda(q)=q-1$</li>
+<li><strong>coefficient</strong> 定义为 $q^*:\equiv q^{-1} \pmod p$</li>
+</ul>
+<h3 id="公钥成分">公钥成分</h3>
+<p>使用 OpenSSL 将之前的私钥导出为公钥，并查看其成分：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ openssl rsa -in sample.key -pubout <span class="p">|</span> openssl pkey -pubin -noout -text
+</span></span><span class="line"><span class="cl">writing RSA key
+</span></span><span class="line"><span class="cl">Public-Key: <span class="o">(</span><span class="m">512</span> bit<span class="o">)</span>
+</span></span><span class="line"><span class="cl">Modulus:
+</span></span><span class="line"><span class="cl">    00:e8:b1:ea:27:bc:3a:a6:9f:53:48:24:9c:5a:9d:
+</span></span><span class="line"><span class="cl">    9e:64:af:12:3e:ae:db:46:f0:4d:99:55:61:fd:c2:
+</span></span><span class="line"><span class="cl">    c8:45:35:25:05:e6:7b:37:c0:cc:92:7a:45:c0:5b:
+</span></span><span class="line"><span class="cl">    01:a3:4c:4e:87:5b:70:48:62:05:2a:6e:c2:3a:6a:
+</span></span><span class="line"><span class="cl">    f0:07:92:61:ad
+</span></span><span class="line"><span class="cl">Exponent: <span class="m">65537</span> <span class="o">(</span>0x10001<span class="o">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>公钥成分是更加简单的，恰恰好好是 $(N,e)$.</p>
+<h1 id="恢复密钥">恢复密钥</h1>
+<p>RSA 中的<a href="https://en.wikipedia.org/wiki/Trapdoor_function#RSA_Assumption">陷门</a>保证了无法轻易从公钥恢复出私钥，除非知道了 RSA 模的分解式即 $N=pq$. 在现有的分解数据库 <a href="http://factordb.com/">factordb</a> 上寻找 RSA 模的分解式是一个不错的方法，但在大多数场合下很难奏效.</p>
+<p>要是有人使用了 RSA-512 的密钥，攻击者利用 CADO-NFS 实现的 NFS 算法<strong>不花一个星期</strong>就能把 RSA 模分解出来.</p>
+<h2 id="分布式分解">分布式分解</h2>
+<p>CADO-NFS 是一个完备的软件套装，其中就包含了用于分布式计算的中心服务端，这里是一些注意事项：</p>
+<ul>
+<li>
+<p>无论是服务端还是客户端，要尽量使用相同的 Linux 发行版或者 Docker 镜像</p>
+<p>不然的话可能会遇到 <code>glibc</code> 的版本兼容性问题.</p>
+</li>
+<li>
+<p>在启动了 CADO-NFS 的服务端之后，需要留意会输出一段可供恢复分解进度的命令，如果服务端意外退出，可以使用该命令恢复到退出前的进度.</p>
+</li>
+</ul>
+<h3 id="前置步骤">前置步骤</h3>
+<ul>
+<li>
+<p>为了编译 CADO-NFS，除了常用的工具链外，还要安装 <code>cmake</code> 和 <code>libgmp3-dev</code>.</p>
+</li>
+<li>
+<p>下载 CADO-NFS <a href="https://gitlab.inria.fr/cado-nfs/cado-nfs/-/archive/master/cado-nfs-master.tar.gz">源代码 tarball</a>后， 解压并进入目录.</p>
+</li>
+<li>
+<p>运行 <code>make -j8</code> 开始构建. (可以根据机器情况，调整这里的并发任务数)</p>
+</li>
+<li>
+<p>这个时候 <code>./cado-nfs.py</code> 和 <code>./cado-nfs-client.py</code> 应该可以用了.</p>
+</li>
+<li>
+<p>从公钥文件 <code>pub.pem</code> 获取 RSA 的模，从此处开始一些数字末尾被抹掉了.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ openssl pkey -pubin -in pub.pem -noout -text
+</span></span><span class="line"><span class="cl">Public-Key: <span class="o">(</span><span class="m">512</span> bit<span class="o">)</span>
+</span></span><span class="line"><span class="cl">Modulus:
+</span></span><span class="line"><span class="cl">    00:bc:dd:6e:bc:57:ae:a2:be:7d:ad:70:8f:71:0a:
+</span></span><span class="line"><span class="cl">    80:86:3b:c5:18:f7:ab:4d:5e:bd:a5:64:b2:65:d2:
+</span></span><span class="line"><span class="cl">    7c:d9:4c:5e:e3:c3:bc:33:b7:60:30:98:bd:6d:c4:
+</span></span><span class="line"><span class="cl">    **:**:**:**:**:**:**:**:**:**:**:**:**:**:**:
+</span></span><span class="line"><span class="cl">    **:**:**:**:**
+</span></span><span class="line"><span class="cl">Exponent: <span class="m">65537</span> <span class="o">(</span>0x10001<span class="o">)</span>
+</span></span><span class="line"><span class="cl">$ openssl rsa -pubin -in public.pem -noout -modulus 
+</span></span><span class="line"><span class="cl"><span class="nv">Modulus</span><span class="o">=</span>BCDD6EBC57AEA2BE7DAD708F710A80863BC518F7AB4D5EBDA564B265D27CD94C5EE3C3BC33B7603098BD6DC4****************REDACTED****************
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>得到了十六进制表示，需要转为十进制，例如可以直接让 Python 输出数值</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ python -c <span class="s2">&#34;print(0xBCDD6EBC57AEA2BE7DAD708F710A80863BC518F7AB4D5EBDA564B265D27CD94C5EE3C3BC33B7603098BD6DC4****************REDACTED****************)&#34;</span>
+</span></span><span class="line"><span class="cl">9891661152720289911993780388856560399924301310754393756699908896661301299157403390541217712185535804***********************REDACTED***********************
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+</ul>
+<h3 id="服务端">服务端</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">./cado-nfs.py 9891661152720289911993780388856560399924301310754393756699908896661301299157403390541217712185535804***********************REDACTED*********************** <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>              server.ssl<span class="o">=</span>no server.address<span class="o">=</span>0.0.0.0 server.port<span class="o">=</span><span class="m">52600</span> server.whitelist<span class="o">=</span>0.0.0.0/0 <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>              tasks.workdir<span class="o">=</span><span class="nv">$HOME</span>/nfs-work <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>              --server
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="客户端">客户端</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">./cado-nfs-client.py --server<span class="o">=</span>http://server:52600 --override -t <span class="m">8</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>将这里的 <code>server</code> 改成服务器的地址，每台机器可调整 <code>--override -t 8</code> 的线程数，以提高分解过程的单机并行度.</p>
+<h3 id="结果">结果</h3>
+<p>最后的输出便是两个素数，可以看下面的图.</p>
+<pre tabindex="0"><code>95488332303787905388806934005632272891519544646395*************************** 103590259815731432651796987187054092306262180182970***************************
+</code></pre><center>
+<figure><img src="factorization.png"/><figcaption>
+            <h4>分解结果</h4>
+        </figcaption>
+</figure>
+
+</center>
+<h2 id="恢复私钥">恢复私钥</h2>
+<p>为了更方便地基于 $p, q, n, e$ 创建私钥，此处推荐 <a href="https://github.com/ius/rsatool"><code>rsatool.py</code></a> 这个工具，下载对应仓库并解压后，在目录中运行 <code>pip install .</code> 即可安装相关依赖.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ python rsatool.py -n 9891661152720289911993780388856560399924301310754393756699908896661301299157403390541217712185535804***********************REDACTED*********************** <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>                    -p 95488332303787905388806934005632272891519544646395*************************** <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>                    -q 103590259815731432651796987187054092306262180182970*************************** <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>                    -e <span class="m">65537</span> <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>                    -f PEM -o recovered.key
+</span></span><span class="line"><span class="cl">Using <span class="o">(</span>p, q<span class="o">)</span> to calculate RSA paramaters
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nv">n</span> <span class="o">=</span>
+</span></span><span class="line"><span class="cl">bcdd6ebc57aea2be7dad708f710a80863bc518f7ab4d5ebda564b265d27cd94c5ee3c3bc33b76030
+</span></span><span class="line"><span class="cl">********************redacted********************
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nv">e</span> <span class="o">=</span> <span class="m">65537</span> <span class="o">(</span>0x10001<span class="o">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nv">d</span> <span class="o">=</span>
+</span></span><span class="line"><span class="cl">5d9b5a611b0c41392ccd23b6d48e21f965f26057909dbe513c825631454bffde921bc51a076cc3a5
+</span></span><span class="line"><span class="cl">********************redacted********************
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nv">p</span> <span class="o">=</span>
+</span></span><span class="line"><span class="cl">d31c7b17003dec91c9709546264c76c94670a4a9********redacted********
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nv">q</span> <span class="o">=</span>
+</span></span><span class="line"><span class="cl">e506026099230459a9a042fac22b258da1c43647********redacted********
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Saving PEM as recovered.key
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>便得到了恢复的私钥 <code>recovered.key</code>，值得注意的是，该工具生成的私钥格式为 PKCS#1，可以转换成 PKCS#8 格式，只需运行</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ openssl pkey -in recovered.key
+</span></span></code></pre></td></tr></table>
+</div>
+</div><!-- # 附录：Carmichael vs. Euler -->
+
+    </article>
+  </main>
+  
+
+<script id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3.0.0/es5/tex-mml-chtml.js">
+</script>
+<script>
+    MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            tags: 'ams',
+        }
+    };
+</script>
+
+
+
+
+
+
+
+<div id="comment"></div>
+
+
+
+
+
+
+
+
+
+
+<div id="disqus_thread" class="mt-8 mb-8"></div>
+<script type="text/javascript">
+    
+    
+    if (window.location.hostname == "localhost") {
+        
+        
+    } else {
+        const dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+
+        const disqus_shortname = 'y5c4l3';
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        document.getElementById("comment").appendChild(dsq);
+    }
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by
+        Disqus.</a></noscript>
+
+
+
+</div>
+
+
+  <footer class="mt-8 mb-8">
+  <div class="container mx-auto">
+    <div class="mt-8 flex justify-between items-center">
+      <p class="mt-0 text-sm">
+        © 2023 y5c4l3 |
+        <a href="https://gohugo.io" target="_blank" rel="noopener noreferrer">Hugo</a> on
+        <a href="https://github.com/mivinci/hugo-theme-minima" target="_blank" rel="noopener noreferrer">Minima</a>
+      </p>
+      <p class="flex items-center mt-0">
+        
+          <a class="icon ml-1 mr-1" href="mailto:y5c4l3@proton.me" title="email">
+          
+            <svg fill="#63636f" width="22" height="22" viewBox="0 0 24 24"><path d="M3 3h18a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm9.06 8.683L5.648 6.238L4.353 7.762l7.72 6.555l7.581-6.56l-1.308-1.513l-6.285 5.439z"/></svg>
+          
+          </a>
+        
+          <a class="icon ml-1 mr-1" href="https://github.com/y5c4l3" title="github">
+          
+            <svg fill="#63636f" width="18" role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>GitHub</title><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+          
+          </a>
+        
+          <a class="icon ml-1 mr-1" href="/index.xml" title="rss">
+          
+            <svg fill="#63636f" t="1626591563876" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1984" width="18" height="16"><path d="M128 768a128 128 0 1 0 0 256 128 128 0 0 0 0-256zM0 368v176c265.104 0 480 214.912 480 480h176c0-362.32-293.696-656-656-656zM0 0v176c468.336 0 848 379.664 848 848h176C1024 458.464 565.536 0 0 0z" p-id="1985"></path></svg>
+          
+          </a>
+        
+      </p>
+    </div>
+  </div>
+</footer>
+</body>
+
+</html>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on Y5C4L3</title>
+    <link>https://y5c4l3.net/zh-cn/post/</link>
+    <description>Recent content in Posts on Y5C4L3</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <copyright>© 2023 y5c4l3</copyright>
+    <lastBuildDate>Sat, 19 Aug 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://y5c4l3.net/zh-cn/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>分布式 CADO-NFS 还原 RSA-512 密钥</title>
+      <link>https://y5c4l3.net/zh-cn/2023/08/19/recovering-rsa-key-pair-with-cado-nfs/</link>
+      <pubDate>Sat, 19 Aug 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://y5c4l3.net/zh-cn/2023/08/19/recovering-rsa-key-pair-with-cado-nfs/</guid>
+      <description>简介 RSA 是目前全世界使用最广泛的公钥密码体系. 公钥密码体系中，有两类密钥：私钥与公钥. 私钥是由算法生成的，并由操作者妥善保管. 公钥是从私钥推导而出的，可以公开发布给任何人. 公钥及其对应的私钥为一对密钥.
+RSA 密钥的大小指的是 RSA 加密或解密运算中模的长度（按 bit 计算），它决定了密钥的整体安全性. 截至 2023 年 8 月，推荐的最小模长为 2048 位. 不过总有开发者罔顾安全性最佳实践，仍然在实际项目中使用 512 位 RSA 密钥.
+本文将演示如何使用 CADO-NFS 将 RSA-512 的公钥恢复成 PKCS#1 / PKCS#8 格式的私钥.
+免责声明: 本文仅供教育目的，作者不支持或鼓励任何非法活动. 本文提供的信息仅供参考，不应用于任何非法活动. 作者不对滥用本文提供的信息所造成的后果负责.
+RSA 小复习 形式化表述 选择两个素数 $p, q$ 将 $N:=pq$ 作为密钥的模.
+计算 $\lambda(N)=\lambda(pq)=\operatorname{lcm}(p-1,q-1)$.
+这里 $\lambda(n)$ is Carmichael 函数, 定义见 $\eqref{carmichael}$.
+$$ \begin{equation} \lambda(n):=\min\{m&amp;gt;0: \forall a \in{}\mathbf{R}^*_n, a^m\equiv 1\pmod n\}\label{carmichael} \end{equation} $$
+其中 $\mathbf{R}^*_{n}{}:= \{i\in{}\mathbf{R}_n: \gcd(n, i) = 1\}$ 是模 $n$ 的简化剩余系.</description>
+    </item>
+    
+    <item>
+      <title>H3C 企业路由器的 NPTv6 相关配置</title>
+      <link>https://y5c4l3.net/zh-cn/2023/08/15/configuring-nptv6-on-h3c-routers/</link>
+      <pubDate>Tue, 15 Aug 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://y5c4l3.net/zh-cn/2023/08/15/configuring-nptv6-on-h3c-routers/</guid>
+      <description>简介 IPv6 作为接替 IPv4 的下一代 IP 技术，其全面应用的时机还并不成熟，这主要是源于基础设施（软、硬件）落后、相关规范不完善、ISP 接入手段不周全，以及应用开发者的意识薄弱等问题.
+在家庭场景中，许多 ISP 通过 DHCPv6 PD 的方式（往往在 PPPoE 之上）为终端用户分配一个前缀.
+即使前缀是动态的（每次拨号或每天变化），用户只要用（唯一）一个支持双栈的路由器，这仍然是非常可行的. 如下图所示，家庭用户在 ONU 后面设置无线路由器.
+简化拓扑 对于一个双栈路由器，建立互联网访问的步骤包括：
+路由器与 ISP 建立 PPPoE 会话，并获取分配的 IPv4 端点地址.
+路由器从 ISP PPPoE 对等方发送的 ICMPv6 RA 中配置其 IPv6 SLAAC 地址. （RA 包含前缀 240E:38F:8765:4321::/64）
+路由器启动带有 IA_PD 选项的有状态 DHCPv6 客户端，并被委派前缀 240E:388:1234:1200::/56.
+然后，路由器将向所有客户端发送 ICMPv6 RA，告诉他们拥有一个 IPv6 子网 240E:388:1234:1200::/56，此后所有客户端都将启动 SLAAC 配置，获得一个可公开访问的 IPv6 地址.
+（值得注意的是，以上所有涉及 SLAAC 的步骤，都可替换为有状态 DHCPv6. ）
+如果任何用户要将网络划分为不同的 VLAN，则动态前缀将挑战整个网络. 由于许多设备不支持动态前缀本地化或无法处理前缀失效的情况，因此我们必须稳定地址分配.
+本文介绍了 IPv6 中“私有网络”地址空间以及在 H3C 路由器上配置 NPTv6 的步骤.</description>
+    </item>
+    
+    <item>
+      <title>你好，世界！</title>
+      <link>https://y5c4l3.net/zh-cn/2023/01/31/hello-world/</link>
+      <pubDate>Tue, 31 Jan 2023 15:09:05 +0000</pubDate>
+      
+      <guid>https://y5c4l3.net/zh-cn/2023/01/31/hello-world/</guid>
+      <description>你好，世界！</description>
+    </item>
+    
+  </channel>
+</rss>
