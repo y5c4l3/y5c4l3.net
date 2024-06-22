@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>密码学 on Y5C4L3</title>
+    <link>https://y5c4l3.net/zh-cn/tags/%E5%AF%86%E7%A0%81%E5%AD%A6/</link>
+    <description>Recent content in 密码学 on Y5C4L3</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <copyright>© 2024 y5c4l3</copyright>
+    <lastBuildDate>Sat, 19 Aug 2023 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://y5c4l3.net/zh-cn/tags/%E5%AF%86%E7%A0%81%E5%AD%A6/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>分布式 CADO-NFS 还原 RSA-512 密钥</title>
+      <link>https://y5c4l3.net/zh-cn/2023/08/19/recovering-rsa-key-pair-with-cado-nfs/</link>
+      <pubDate>Sat, 19 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>https://y5c4l3.net/zh-cn/2023/08/19/recovering-rsa-key-pair-with-cado-nfs/</guid>
+      <description>简介 RSA 是目前全世界使用最广泛的公钥密码体系. 公钥密码体系中，有两类密钥：私钥与公钥. 私钥是由算法生成的，并由操作者妥善保管. 公钥是从私钥推导而出的，可以公开发布给任何人. 公钥及其对应的私钥为一对密钥.&#xA;RSA 密钥的大小指的是 RSA 加密或解密运算中模的长度（按 bit 计算），它决定了密钥的整体安全性. 截至 2023 年 8 月，推荐的最小模长为 2048 位. 不过总有开发者罔顾安全性最佳实践，仍然在实际项目中使用 512 位 RSA 密钥.&#xA;本文将演示如何使用 CADO-NFS 将 RSA-512 的公钥恢复成 PKCS#1 / PKCS#8 格式的私钥.&#xA;免责声明: 本文仅供教育目的，作者不支持或鼓励任何非法活动. 本文提供的信息仅供参考，不应用于任何非法活动. 作者不对滥用本文提供的信息所造成的后果负责.&#xA;RSA 小复习 形式化表述 选择两个素数 $p, q$ 将 $N:=pq$ 作为密钥的模.&#xA;计算 $\lambda(N)=\lambda(pq)=\operatorname{lcm}(p-1,q-1)$.&#xA;这里 $\lambda(n)$ is Carmichael 函数, 定义见 $\eqref{carmichael}$.&#xA;$$ \begin{equation} \lambda(n):=\min\{m&amp;gt;0: \forall a \in{}\mathbf{R}^*_n, a^m\equiv 1\pmod n\}\label{carmichael} \end{equation} $$&#xA;其中 $\mathbf{R}^*_{n}{}:= \{i\in{}\mathbf{R}_n: \gcd(n, i) = 1\}$ 是模 $n$ 的简化剩余系.</description>
+    </item>
+  </channel>
+</rss>

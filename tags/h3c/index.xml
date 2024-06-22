@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>H3c on Y5C4L3</title>
+    <link>https://y5c4l3.net/tags/h3c/</link>
+    <description>Recent content in H3c on Y5C4L3</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <copyright>© 2024 y5c4l3</copyright>
+    <lastBuildDate>Tue, 15 Aug 2023 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://y5c4l3.net/tags/h3c/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Configuring NPTv6 and More on H3C Routers</title>
+      <link>https://y5c4l3.net/2023/08/15/configuring-nptv6-on-h3c-routers/</link>
+      <pubDate>Tue, 15 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>https://y5c4l3.net/2023/08/15/configuring-nptv6-on-h3c-routers/</guid>
+      <description>Intro IPv6 is the successor to IPv4, but many necessities of IPv6 are still in development, which include a wide range of infrastructures (hardware / software), specifications (IETF RFCs), good practices followed by ISPs, and awareness of developers.&#xA;In home scenarios, many ISPs do allocate IPv6 prefixes for end-users via DHCPv6 PD (probably over PPPoE).&#xA;Even if the prefix is dynamic (changing on each dial or a daily basis), this is still quite good for most home users as long as they are using EXACTLY one router with decent support for dual-stack.</description>
+    </item>
+  </channel>
+</rss>

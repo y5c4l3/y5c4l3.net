@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Pages on Y5C4L3</title>
+    <link>https://y5c4l3.net/zh-cn/page/</link>
+    <description>Recent content in Pages on Y5C4L3</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <copyright>© 2024 y5c4l3</copyright>
+    <lastBuildDate>Sat, 19 Aug 2023 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://y5c4l3.net/zh-cn/page/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>写作导则</title>
+      <link>https://y5c4l3.net/zh-cn/writing-guidelines/</link>
+      <pubDate>Sat, 19 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>https://y5c4l3.net/zh-cn/writing-guidelines/</guid>
+      <description>这虽然是个人博客，我大可随心所欲地写作，但我还是尽力想让读者更好地理解我的文章，并让文章的格式与形式更加统一，于是有了这一篇写作导则，本导则大概也能让您拥有更好的食用体验.&#xA;格式 段落 （类）块级语义必须附加段落空行 在会产生块级语义的情形下，必须与空开一行，以便 goldmark 产生段落元素 p，否则有一些视觉风格可能无法正确附加.&#xA;字符 标点 简单标点 CJK 和西文标点的差异还是比较大的，并且同名标点具有非常不同的字符形式，因此文章的标点集合选用应该提前确定，在编写文章时，根据文章的主语言选用一套方案.&#xA;下面列出了选定的标点列表，值得注意的是 CJK 情形下常用的句点（。U+3002）被西文句点所代替，这是为了模拟 CJK 科学类文章常用的全角实心句点（．U+FF0E），同时其后的空格增补原则与西文一致. 这样做牺牲了间距的严格性，但换来了输入的便捷性.&#xA;标点名称 西文 CJK 逗号 , ， 句号 . . 问号 ? ？ 叹号 ! ！ 引号 &amp;quot; 「」 分号 ; ； 冒号 : ： 连接号 形为一条中央横线的连接号，主要有以下几种变体&#xA;连字号 - (U+002D)：合成词 数字连接号 ‒ (U+2012)：划分数字（如电话号码的区号） ndash – (U+2013)：表达范围（数字、日期） mdash – (U+2014)：破折号 在西文句子中破折号使用单个 mdash，CJK 情形中的破折号由两个 mdash 构成. 在 Markdown 中，原生支持 ndash 和 mdash 的便捷标记，为了方便起见，将数字连接号的使用情形合并到连字号下.&#xA;CJK 字符与西文间的空格 在正式的场景下，西文在词与词间使用一个空格隔开，如果出现了小标点且其后不是边界，小标点后也会使用一个空格，例如：</description>
+    </item>
+    <item>
+      <title>关于</title>
+      <link>https://y5c4l3.net/zh-cn/about/</link>
+      <pubDate>Tue, 25 Jul 2023 00:00:00 +0000</pubDate>
+      <guid>https://y5c4l3.net/zh-cn/about/</guid>
+      <description>Y5C4L3 Y5C4L3 是来自中国 🇨🇳 的技术工作者与爱好者，完成本科学业后，聚焦于计算机科学中的编程语言理论、图形学以及软件与系统安全领域。&#xA;👨‍💻 计算设备 🖥️ PC 💻 笔记本 Hei[1]: ThinkPad P15v Gen 3 2022 年 08 月 &amp;ndash; 今&#xA;操作系统: Arch Linux 🖥️ 台式机 Daleth 2020 年 06 月 &amp;ndash; 今&#xA;主板: MSI MPG Z490 GAMING PLUS (MS-7C75)&#xA;CPU: Intel Core i7-10700K (Comet Lake)&#xA;RAM: Team Group DDR4 3200 MHz 16 GiB * 2&#xA;存储&#xA;TOSHIBA HDWD120 (P300) 2 TB Western Digital WD Blue SN550 NVMe SSD 1 TB (WDS100T2B0C) 风冷: THERMALRIGHT Assassin Spirit 120 RGB</description>
+    </item>
+  </channel>
+</rss>

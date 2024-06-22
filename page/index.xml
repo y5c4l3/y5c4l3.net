@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Pages on Y5C4L3</title>
+    <link>https://y5c4l3.net/page/</link>
+    <description>Recent content in Pages on Y5C4L3</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <copyright>© 2024 y5c4l3</copyright>
+    <lastBuildDate>Sat, 19 Aug 2023 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://y5c4l3.net/page/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Writing Guidelines</title>
+      <link>https://y5c4l3.net/writing-guidelines/</link>
+      <pubDate>Sat, 19 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>https://y5c4l3.net/writing-guidelines/</guid>
+      <description>Guidelines here spread consistency to the articles in form. More importantly they may help the readers to understand the contents better.&#xA;Formats Paragraphs Block(-like) Semantics Require Additional Newline For block semantic elements, it must be followed by an additional newline, so that goldmark will generate the paragraph p, otherwise some visual styles may not be correctly applied.&#xA;Characters Punctuation Simple Marks The difference between CJK and Western punctuation is still relatively large, so the punctuation set of the article should be related to the main language of the article.</description>
+    </item>
+    <item>
+      <title>About</title>
+      <link>https://y5c4l3.net/about/</link>
+      <pubDate>Tue, 25 Jul 2023 00:00:00 +0000</pubDate>
+      <guid>https://y5c4l3.net/about/</guid>
+      <description>Y5C4L3 Y5C4L3 is a tech worker / enthusiast from China 🇨🇳. He has completed his Bachelor&amp;rsquo;s degree in computer science, and is now focusing on programming language theories, computer graphics and software security.&#xA;👨‍💻 Computing 🖥️ PC 💻 Laptop Hei[1]: ThinkPad P15v Gen 3 Aug 2022 &amp;ndash; now&#xA;OS: Arch Linux 🖥️ Desktop Daleth Jun 2020 &amp;ndash; now&#xA;Motherboard: MSI MPG Z490 GAMING PLUS (MS-7C75)&#xA;CPU: Intel Core i7-10700K (Comet Lake)</description>
+    </item>
+  </channel>
+</rss>

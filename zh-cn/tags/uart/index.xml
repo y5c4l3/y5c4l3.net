@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Uart on Y5C4L3</title>
+    <link>https://y5c4l3.net/zh-cn/tags/uart/</link>
+    <description>Recent content in Uart on Y5C4L3</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <copyright>© 2024 y5c4l3</copyright>
+    <lastBuildDate>Mon, 10 Jun 2024 23:27:07 +0800</lastBuildDate>
+    <atom:link href="https://y5c4l3.net/zh-cn/tags/uart/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>深入理解 DTE &amp; DCE：SystemVerilog 的视角</title>
+      <link>https://y5c4l3.net/zh-cn/2024/06/10/understanding-dte-dce-systemverilog-s-perspective/</link>
+      <pubDate>Mon, 10 Jun 2024 23:27:07 +0800</pubDate>
+      <guid>https://y5c4l3.net/zh-cn/2024/06/10/understanding-dte-dce-systemverilog-s-perspective/</guid>
+      <description>Intro RS-232 是一个通信中常见的电气接口标准，现在常以 DE-9 的物理端子相互连接，在其之上几乎总是运行 UART. 但当我们细看其标准 TIA/EIA-232-F 时， 就会发现一些诸如 DTE 与 DCE奇怪的概念. 这些概念一般就出现在 TIA 发布的规范中.&#xA;网上搜一下 DTE 与 DCE，总是能看到有人将 PC 与 MODEM 通过 PSTN 拨号上网的时代搬出来，并断言&#xA;PC 是 DTE 而 MODEM 是 DCE.&#xA;Dial-up Internet Access 然而那个时代离现在似乎有点远，就好像在说这些概念是被历史抛弃了吗？是也不是.&#xA;即使当今的嵌入式开发者在使用 TTL 电平的 UART 时碰到一些纯软件问题，他们可能还是会在一些设备文档中不经意之间跟这些术语打交道.&#xA;本文将探讨区分 DTE 与 DCE 背后的动机，以及这些概念在当今是怎么被弱化的，并展示在 SystemVerilog 数字设计时合理运用这些概念可能带来的好处.&#xA;动机 因为我们要在设备之间定义一种接口，所以才创造出了 DTE 与 DCE 的概念.&#xA;接口就是一捆有方向的线 这么说可能会有瑕疵. 以 I2C 为例，其中就有双向的数据总线，但考虑任一时刻，数据线的方向总是确定的，因为规范中对于信号时序是良定义的.&#xA;我们可以看一下 SPI 的接口定义.&#xA;SPI 接口 含义 方向 CS 片选 主设备 → 从设备 SCLK 串行时钟 主设备 → 从设备 MOSI 主设备的输出，从设备的输入 主设备 → 从设备 MISO 主设备的输入，从设备的输出 从设备 → 主设备 这里的关键点就是，为了区分信号的方向，标准必须将设备进行某种分类，然后才能定义它们之间的数据流向.</description>
+    </item>
+  </channel>
+</rss>

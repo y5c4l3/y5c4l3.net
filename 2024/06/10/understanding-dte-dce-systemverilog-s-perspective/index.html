@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta property="og:url" content="https://y5c4l3.net/2024/06/10/understanding-dte-dce-systemverilog-s-perspective/">
+  <meta property="og:site_name" content="Y5C4L3">
+  <meta property="og:title" content="Understanding DTE &amp; DCE: SystemVerilog&#39;s Perspective">
+  <meta property="og:description" content="Intro RS-232 is a common electrical interface standard for communications, often physically presented as a DE-9 connector, and people today consistently run UART over it. But with a closer look at the standard TIA/EIA-232-F, readers will find some weird concepts like DTE and DCE. They often appear in many specifications published by TIA.
+Searching DTE &amp; DCE on the internet, people tend to present PCs and MODEMs connected to PSTN and assert that">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="post">
+    <meta property="article:published_time" content="2024-06-10T23:27:07+08:00">
+    <meta property="article:modified_time" content="2024-06-10T23:27:07+08:00">
+    <meta property="article:tag" content="Rs-232">
+    <meta property="article:tag" content="Uart">
+    <meta property="article:tag" content="Systemverilog">
+
+  
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Understanding DTE &amp; DCE: SystemVerilog&#39;s Perspective">
+  <meta name="twitter:description" content="Intro RS-232 is a common electrical interface standard for communications, often physically presented as a DE-9 connector, and people today consistently run UART over it. But with a closer look at the standard TIA/EIA-232-F, readers will find some weird concepts like DTE and DCE. They often appear in many specifications published by TIA.
+Searching DTE &amp; DCE on the internet, people tend to present PCs and MODEMs connected to PSTN and assert that">
+
+  
+  
+
+
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#262d33">
+  <title>
+    
+    Y5C4L3 - Understanding DTE &amp; DCE: SystemVerilog&#39;s Perspective
+    
+  </title>
+  
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+  
+  
+  
+  <link rel="stylesheet" href="/minima.1719054160.css">
+  
+  
+  <script defer type="text/javascript" src="/minima.1719054160.js"></script>
+  
+	
+	<link rel="alternate" hreflang="zh-cn" href="https://y5c4l3.net/zh-cn/2024/06/10/understanding-dte-dce-systemverilog-s-perspective/" title="ZH">
+	
+
+</head>
+<script>
+  
+  let default_theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+
+  try {
+    const local = localStorage.getItem('theme')
+    if (local) {
+      default_theme = local
+    }
+    localStorage.setItem('theme', default_theme);
+    window.minima_theme = default_theme;
+    document.querySelector('html').classList.add(default_theme);
+  } catch (e) {
+    console.error(e);
+  }
+</script>
+
+
+
+<body>
+  <header class="mt-3 mb-6">
+  <div class="container mx-auto">
+    <nav class="flex justify-between items-center">
+      <div class="flex items-center">
+        
+        <div id="theme-switch" class="text-3xl cursor-pointer">🌝</div>
+      </div>
+      <ul class="flex items-center font-medium
+        whitespace-nowrap overflow-x-auto overflow-y-hidden">
+        
+        <li class="ml-1 mr-1"><a href="/">Home</a></li>
+        
+        <li class="ml-1 mr-1"><a href="/about">About</a></li>
+        
+        <li class="ml-1 mr-1"><a href="/archive">Archive</a></li>
+        
+        <li class="ml-1 mr-1"><a href="/tags">Tags</a></li>
+        
+        <li class="ml-1 mr-1"><a href="/series">Series</a></li>
+        
+        <li class="ml-1 mr-1"><a href="/writing-guidelines">Guidelines</a></li>
+        
+      </ul>
+      <ul class="flex item-center text-sm font-bold">
+        
+        <li class="ml-2"><a href="https://y5c4l3.net/">EN</a></li>
+        
+        <li class="ml-2"><a href="https://y5c4l3.net/zh-cn/">ZH</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</header>
+
+  
+<div class="container mx-auto">
+  <h1 class="text-4xl font-extrabold mt-6 mb-6">Understanding DTE &amp; DCE: SystemVerilog&#39;s Perspective</h1>
+  <div class="mb-3 text-sm flex justify-between ">
+    <div>
+      
+      Post at &mdash; Jun 10, 2024
+      
+      
+    </div>
+    
+    <div>
+      
+      
+      <a class="ml-1" href="/tags/rs-232">#rs-232</a>
+      
+      
+      <a class="ml-1" href="/tags/uart">#uart</a>
+      
+      
+      <a class="ml-1" href="/tags/systemverilog">#systemverilog</a>
+      
+    </div>
+    
+  </div>
+  <main class="mb-8">
+    <p></p>
+    <article class="md">
+      <h1 id="intro">Intro</h1>
+<p><abbr title="Recommended Standard 232">RS-232</abbr> is a common electrical interface standard for communications, often physically presented as a DE-9 connector, and people today consistently run <abbr title="Universal Asynchronous Receiver/Transmitter">UART</abbr> over it. But with a closer look at the standard <a href="https://d1.amobbs.com/bbs_upload782111/files_35/ourdev_608717A327FT.pdf">TIA/EIA-232-F</a>, readers will find some weird concepts like <abbr title="Data Terminal Equipment">DTE</abbr> and <abbr title="Data Circuit-terminating Equipment / Data Communication Equipment">DCE</abbr>. They often appear in many specifications published by <abbr title="Telecommunications Industry Association">TIA</abbr>.</p>
+<p>Searching DTE &amp; DCE on the internet, people tend to present <abbr title="Personal Computer">PCs</abbr> and <abbr title="MOdulator-DEModulator">MODEMs</abbr> connected to <abbr title="Public Switched Telephone Network">PSTN</abbr> and assert that</p>
+<blockquote>
+<p>Computers are DTE while MODEMs are DCE.</p>
+</blockquote>
+<center>
+<figure><img src="/2024/06/10/understanding-dte-dce-systemverilog-s-perspective/dial-up.svg"><figcaption>
+      <h4>Dial-up Internet Access</h4>
+    </figcaption>
+</figure>
+
+</center>
+<p>This seems a bit far from the era, so are they abandoned? Not really.</p>
+<p>Even if modern embedded software developers only encounter software problems about UART in <abbr title="Transistor–Transistor Logic">TTL</abbr> voltage levels, where there are few pins with no RS-232 voltage levels at all, they will still be exposed to these traditional terms unexpectedly in online documentation.</p>
+<p>In this post, I will discuss the motivation of differentiating DTE &amp; DCE and how people today weaken them, then manifest the potential benefits of applying them in digital design, using SystemVerilog.</p>
+<h1 id="motivation">Motivation</h1>
+<p>The motivation behind DTE &amp; DCE is simply that we are defining an interface between two devices. That&rsquo;s it!</p>
+<h2 id="interface-is-bundled-wires-with-directions">Interface is Bundled Wires with Directions</h2>
+<blockquote>
+<p>This is not generally true.
+For example, <abbr title="Inter-Integrated Circuit">I<sup>2</sup>C</abbr> features a bidirectional bus. But for any given instant, the direction should be definitive since signal timing is well defined in the specification.</p>
+</blockquote>
+<p>Let&rsquo;s have a look at the common <abbr title="Serial Peripheral Interface">SPI</abbr> interface definition.</p>
+<table>
+<thead>
+<tr>
+<th>SPI Interface Name</th>
+<th>Meaning</th>
+<th>Direction</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CS</code></td>
+<td>Chip Select</td>
+<td>Main → Sub</td>
+</tr>
+<tr>
+<td><code>SCLK</code></td>
+<td>Serial Clock</td>
+<td>Main → Sub</td>
+</tr>
+<tr>
+<td><code>MOSI</code></td>
+<td>Main Out, Sub In</td>
+<td>Main → Sub</td>
+</tr>
+<tr>
+<td><code>MISO</code></td>
+<td>Main In, Sub Out</td>
+<td>Sub → Main</td>
+</tr>
+</tbody>
+</table>
+<p>That is the key point here. To clarify the signal direction, the standard has to classify devices and define the flow between them.</p>
+<p>The same applies to RS-232. Here is a common definition for DTE and DCE.</p>
+<blockquote>
+<p>DTEs produce data autonomously while DCEs only do data switching and signal conversion.</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>RS-232 Interface Name (DE-9)</th>
+<th>Meaning</th>
+<th>Direction</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DCD</code></td>
+<td>Data Carrier Detect</td>
+<td>DCE → DTE</td>
+</tr>
+<tr>
+<td><code>RXD</code></td>
+<td>Received Data</td>
+<td>DCE → DTE</td>
+</tr>
+<tr>
+<td><code>TXD</code></td>
+<td>Transmitted Data</td>
+<td>DTE → DCE</td>
+</tr>
+<tr>
+<td><code>DTR</code></td>
+<td>Data Terminal Ready</td>
+<td>DTE → DCE</td>
+</tr>
+<tr>
+<td><code>GND</code></td>
+<td>Ground</td>
+<td></td>
+</tr>
+<tr>
+<td><code>DSR</code></td>
+<td>Data Set Ready</td>
+<td>DCE → DTE</td>
+</tr>
+<tr>
+<td><code>RTS</code></td>
+<td>Request To Send</td>
+<td>DTE → DCE</td>
+</tr>
+<tr>
+<td><code>CTS</code></td>
+<td>Clear To Send</td>
+<td>DCE → DTE</td>
+</tr>
+<tr>
+<td><code>RI</code></td>
+<td>Ring Indicator</td>
+<td>DCE → DTE</td>
+</tr>
+</tbody>
+</table>
+<p>So it&rsquo;s always expected to connect some DTE with another DCE together in RS-232, using a <strong>straight through</strong> cable.</p>
+<h1 id="confusion-and-weakening">Confusion and Weakening</h1>
+<p>Here comes a dilemma, which makes the whole thing much confusing.</p>
+<p>The most common use cases for RS-232 are peer-to-peer UART. For example, connecting a PC to an FPGA board with DE-9 connector makes a duplex channel between two devices. The FPGA board is collecting the sensor data and sending it through UART. The question is, which device is acting as a DCE?</p>
+<p><em><strong>In fact, they&rsquo;re all DTE.</strong></em></p>
+<p>If you want to connect two DTEs together, you need a special <strong>crossover</strong> cable called <strong>null MODEM</strong>. This is not even a cable, it&rsquo;s a fully qualified DCE.</p>
+<center>
+<figure><img src="/2024/06/10/understanding-dte-dce-systemverilog-s-perspective/null-modem.svg"><figcaption>
+      <h4>Null MODEM</h4>
+    </figcaption>
+</figure>
+
+</center>
+<p>The differentiation between DTE &amp; DCE claims that the <code>TXD</code> pin on a UART-capable device does not necessarily mean &ldquo;transmitted data FROM this device&rdquo;.</p>
+<p>But connections between UART DTEs are dominant now, as a result, DTE &amp; DCE are considered so old-school and confusing that modern equipments generally weaken them. So by the natural sense, a pin marked with <code>TXD</code> usually means &ldquo;transmitted data FROM this device&rdquo; today, since most of them are DTE in essence.</p>
+<h2 id="ethernet-off-topic">Ethernet (off-topic)</h2>
+<p>Ethernet devices / ports are also classified into DTE &amp; DCE, with <strong>straight through</strong> or <strong>crossover</strong> cables, but they are overwhelmingly weakened today in a different fashion.</p>
+<p>Unlike RS-232 UART connections, you cannot claim which kind of device is the majority in Ethernet. To reduce the burden on terminal users of using correct cables, <em>auto <abbr title="Medium-Dependent Interface – CROSSOVER">MDI-X</abbr></em> is implemented to negotiate the link (especially for 10BASE-T / 100BASE-TX), no matter what kind of cables they&rsquo;re using. Furthermore, <abbr title="Physical Medium Attachment">PMA</abbr> in 1000BASE-T natively defines that the cable pairs are bidirectional, and can identify many cases of polarity inversion.</p>
+<p>For convenience, most Ethernet RJ-45 cables are <strong>straight through</strong> now, since the orders of cable pairs can be resolved and recognized by Ethernet transceivers. Thus there isn&rsquo;t sensible distinction as per the connections between routers, switches, hubs and PCs. Same connections leads to same ports, same ports lead to no differences at all for end users.</p>
+<h1 id="applications-in-digital-design">Applications in Digital Design</h1>
+<p>The concepts are not practical in real life because most of the devices are DTE now. But we can have internal DCEs when designing a complex logic on FPGA.</p>
+<p>Here we demonstrate some examples in SystemVerilog.</p>
+<h2 id="unified-interface">Unified Interface</h2>
+<p>This is a UART interface with standard MODEM signals.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-systemverilog" data-lang="systemverilog"><span class="line"><span class="cl"><span class="k">interface</span> <span class="n">uart_io</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">dcd</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">rxd</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">txd</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">dtr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">dsr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">rts</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">cts</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">ri</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">endinterface</span><span class="o">:</span> <span class="n">uart_io</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>To make DTE and DCE come alive, we can use <code>modport</code> keyword to clarify the port direction for DTE and DCE variants.</p>
+<center>
+<figure><img src="/2024/06/10/understanding-dte-dce-systemverilog-s-perspective/modport.svg"><figcaption>
+      <h4>Modports</h4>
+    </figcaption>
+</figure>
+
+</center>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-systemverilog" data-lang="systemverilog"><span class="line"><span class="cl"><span class="k">interface</span> <span class="n">uart_io</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">dcd</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">rxd</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">txd</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">dtr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">dsr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">rts</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">cts</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">ri</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">modport</span> <span class="n">dte</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="k">input</span> <span class="n">dcd</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">input</span> <span class="n">rxd</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">output</span> <span class="n">txd</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">output</span> <span class="n">dtr</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">input</span> <span class="n">dsr</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">output</span> <span class="n">rts</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">input</span> <span class="n">cts</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">input</span> <span class="n">ri</span>
+</span></span><span class="line"><span class="cl">    <span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">modport</span> <span class="n">dce</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="k">output</span> <span class="n">dcd</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">output</span> <span class="n">rxd</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">input</span> <span class="n">txd</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">input</span> <span class="n">dtr</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">output</span> <span class="n">dsr</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">input</span> <span class="n">rts</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">output</span> <span class="n">cts</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">output</span> <span class="n">ri</span>
+</span></span><span class="line"><span class="cl">    <span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">endinterface</span><span class="o">:</span> <span class="n">uart_io</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="null-modem">Null MODEM</h2>
+
+<p>This is a construction of a null MODEM. The variant <code>uart_io.dce</code> is used because null MODEM itself is a DCE, and the other end of each port is some DTE.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-systemverilog" data-lang="systemverilog"><span class="line"><span class="cl"><span class="k">module</span> <span class="n">null_modem</span> <span class="p">(</span><span class="n">uart_io</span><span class="p">.</span><span class="n">dce</span> <span class="n">a</span><span class="p">,</span> <span class="n">uart_io</span><span class="p">.</span><span class="n">dce</span> <span class="n">b</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">assign</span> <span class="n">a</span><span class="p">.</span><span class="n">rxd</span> <span class="o">=</span> <span class="n">b</span><span class="p">.</span><span class="n">txd</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="n">rxd</span> <span class="o">=</span> <span class="n">a</span><span class="p">.</span><span class="n">txd</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">assign</span> <span class="n">a</span><span class="p">.</span><span class="n">cts</span> <span class="o">=</span> <span class="n">b</span><span class="p">.</span><span class="n">rts</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="n">cts</span> <span class="o">=</span> <span class="n">a</span><span class="p">.</span><span class="n">rts</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">assign</span> <span class="n">a</span><span class="p">.</span><span class="n">dsr</span> <span class="o">=</span> <span class="n">b</span><span class="p">.</span><span class="n">dtr</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="n">dsr</span> <span class="o">=</span> <span class="n">a</span><span class="p">.</span><span class="n">dtr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">assign</span> <span class="n">a</span><span class="p">.</span><span class="n">dcd</span> <span class="o">=</span> <span class="n">a</span><span class="p">.</span><span class="n">dtr</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="n">dcd</span> <span class="o">=</span> <span class="n">b</span><span class="p">.</span><span class="n">dtr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">endmodule</span><span class="o">:</span> <span class="n">null_modem</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Furthermore we can even remove the variant for the port, the synthesizer will not work if there is a violation on signal directions. (e.g. connect a DTE and a DCE together using null MODEM)</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-systemverilog" data-lang="systemverilog"><span class="line"><span class="cl"><span class="k">module</span> <span class="n">null_modem</span> <span class="p">(</span><span class="n">uart_io</span> <span class="n">a</span><span class="p">,</span> <span class="n">uart_io</span> <span class="n">b</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">assign</span> <span class="n">a</span><span class="p">.</span><span class="n">rxd</span> <span class="o">=</span> <span class="n">b</span><span class="p">.</span><span class="n">txd</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="n">rxd</span> <span class="o">=</span> <span class="n">a</span><span class="p">.</span><span class="n">txd</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">assign</span> <span class="n">a</span><span class="p">.</span><span class="n">cts</span> <span class="o">=</span> <span class="n">b</span><span class="p">.</span><span class="n">rts</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="n">cts</span> <span class="o">=</span> <span class="n">a</span><span class="p">.</span><span class="n">rts</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">assign</span> <span class="n">a</span><span class="p">.</span><span class="n">dsr</span> <span class="o">=</span> <span class="n">b</span><span class="p">.</span><span class="n">dtr</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="n">dsr</span> <span class="o">=</span> <span class="n">a</span><span class="p">.</span><span class="n">dtr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">assign</span> <span class="n">a</span><span class="p">.</span><span class="n">dcd</span> <span class="o">=</span> <span class="n">a</span><span class="p">.</span><span class="n">dtr</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="n">dcd</span> <span class="o">=</span> <span class="n">b</span><span class="p">.</span><span class="n">dtr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">endmodule</span><span class="o">:</span> <span class="n">null_modem</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="mux">Mux</h2>
+<p>Mux plays an important role in the next example. It allows the signal <code>select_i</code> to choose which device is connected to the main one. The sample code looks ugly because SystemVerilog does not natively support the interface mux, so developers should manually mux the wires.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span><span class="lnt">68
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-systemverilog" data-lang="systemverilog"><span class="line"><span class="cl"><span class="k">interface</span> <span class="n">uart_io</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">dcd</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">rxd</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">txd</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">dtr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">dsr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">rts</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">cts</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">ri</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">modport</span> <span class="n">dte</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="k">input</span> <span class="n">dcd</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">input</span> <span class="n">rxd</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">output</span> <span class="n">txd</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">output</span> <span class="n">dtr</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">input</span> <span class="n">dsr</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">output</span> <span class="n">rts</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">input</span> <span class="n">cts</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">input</span> <span class="n">ri</span>
+</span></span><span class="line"><span class="cl">    <span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">modport</span> <span class="n">dce</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="k">output</span> <span class="n">dcd</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">output</span> <span class="n">rxd</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">input</span> <span class="n">txd</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">input</span> <span class="n">dtr</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">output</span> <span class="n">dsr</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">input</span> <span class="n">rts</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">output</span> <span class="n">cts</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">output</span> <span class="n">ri</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="kn">import</span> <span class="nn">terminate</span>
+</span></span><span class="line"><span class="cl">    <span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">function</span> <span class="n">terminate</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">dcd</span> <span class="o">=</span> <span class="mh">1</span><span class="mb">&#39;b0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">rxd</span> <span class="o">=</span> <span class="mh">1</span><span class="mb">&#39;b0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">dsr</span> <span class="o">=</span> <span class="mh">1</span><span class="mb">&#39;b0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">cts</span> <span class="o">=</span> <span class="mh">1</span><span class="mb">&#39;b0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">endfunction</span><span class="o">:</span> <span class="n">terminate</span>
+</span></span><span class="line"><span class="cl"><span class="k">endinterface</span><span class="o">:</span> <span class="n">uart_io</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">module</span> <span class="n">uart_mux</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="n">uart_io</span><span class="p">.</span><span class="n">dce</span> <span class="n">x</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">uart_io</span><span class="p">.</span><span class="n">dce</span> <span class="n">a</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">uart_io</span><span class="p">.</span><span class="n">dce</span> <span class="n">b</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="k">input</span> <span class="k">logic</span> <span class="n">select_i</span>
+</span></span><span class="line"><span class="cl"><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">always_comb</span> <span class="k">begin</span>
+</span></span><span class="line"><span class="cl">        <span class="n">x</span><span class="p">.</span><span class="n">rxd</span> <span class="o">=</span> <span class="p">(</span><span class="n">select_i</span> <span class="o">==</span> <span class="mh">1</span><span class="mb">&#39;b0</span><span class="p">)</span> <span class="o">?</span> <span class="n">a</span><span class="p">.</span><span class="n">txd</span> <span class="o">:</span> <span class="n">b</span><span class="p">.</span><span class="n">txd</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">x</span><span class="p">.</span><span class="n">cts</span> <span class="o">=</span> <span class="p">(</span><span class="n">select_i</span> <span class="o">==</span> <span class="mh">1</span><span class="mb">&#39;b0</span><span class="p">)</span> <span class="o">?</span> <span class="n">a</span><span class="p">.</span><span class="n">rts</span> <span class="o">:</span> <span class="n">b</span><span class="p">.</span><span class="n">rts</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">x</span><span class="p">.</span><span class="n">dsr</span> <span class="o">=</span> <span class="p">(</span><span class="n">select_i</span> <span class="o">==</span> <span class="mh">1</span><span class="mb">&#39;b0</span><span class="p">)</span> <span class="o">?</span> <span class="n">a</span><span class="p">.</span><span class="n">dtr</span> <span class="o">:</span> <span class="n">b</span><span class="p">.</span><span class="n">dtr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">x</span><span class="p">.</span><span class="n">dcd</span> <span class="o">=</span> <span class="p">(</span><span class="n">select_i</span> <span class="o">==</span> <span class="mh">1</span><span class="mb">&#39;b0</span><span class="p">)</span> <span class="o">?</span> <span class="n">a</span><span class="p">.</span><span class="n">dtr</span> <span class="o">:</span> <span class="n">b</span><span class="p">.</span><span class="n">dtr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">select_i</span> <span class="o">==</span> <span class="mh">1</span><span class="mb">&#39;b0</span><span class="p">)</span> <span class="k">begin</span>
+</span></span><span class="line"><span class="cl">            <span class="n">a</span><span class="p">.</span><span class="n">rxd</span> <span class="o">=</span> <span class="n">x</span><span class="p">.</span><span class="n">txd</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">            <span class="n">a</span><span class="p">.</span><span class="n">cts</span> <span class="o">=</span> <span class="n">x</span><span class="p">.</span><span class="n">rts</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">            <span class="n">a</span><span class="p">.</span><span class="n">dsr</span> <span class="o">=</span> <span class="n">x</span><span class="p">.</span><span class="n">dtr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">            <span class="n">a</span><span class="p">.</span><span class="n">dcd</span> <span class="o">=</span> <span class="n">x</span><span class="p">.</span><span class="n">dtr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">            <span class="n">b</span><span class="p">.</span><span class="n">terminate</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">        <span class="k">end</span>
+</span></span><span class="line"><span class="cl">        <span class="k">else</span> <span class="k">begin</span>
+</span></span><span class="line"><span class="cl">            <span class="n">b</span><span class="p">.</span><span class="n">rxd</span> <span class="o">=</span> <span class="n">x</span><span class="p">.</span><span class="n">txd</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">            <span class="n">b</span><span class="p">.</span><span class="n">cts</span> <span class="o">=</span> <span class="n">x</span><span class="p">.</span><span class="n">rts</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">            <span class="n">b</span><span class="p">.</span><span class="n">dsr</span> <span class="o">=</span> <span class="n">x</span><span class="p">.</span><span class="n">dtr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">            <span class="n">b</span><span class="p">.</span><span class="n">dcd</span> <span class="o">=</span> <span class="n">x</span><span class="p">.</span><span class="n">dtr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">            <span class="n">a</span><span class="p">.</span><span class="n">terminate</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">        <span class="k">end</span>
+</span></span><span class="line"><span class="cl">    <span class="k">end</span>
+</span></span><span class="line"><span class="cl"><span class="k">endmodule</span><span class="o">:</span> <span class="n">uart_mux</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>A (not quite) surprising result is that null MODEM can be redefined by a mux with static selection.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-systemverilog" data-lang="systemverilog"><span class="line"><span class="cl"><span class="k">module</span> <span class="n">null_modem</span> <span class="p">(</span><span class="n">uart_io</span> <span class="n">a</span><span class="p">,</span> <span class="n">uart_io</span> <span class="n">b</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">uart_io</span> <span class="n">dangling</span> <span class="p">();</span>
+</span></span><span class="line"><span class="cl">    <span class="n">uart_mux</span> <span class="n">mux</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">dangling</span><span class="p">,</span> <span class="mh">1</span><span class="mb">&#39;b0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">endmodule</span><span class="o">:</span> <span class="n">null_modem</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="simple-mux-based-switch">Simple Mux-based Switch</h2>
+<p>This is a simple mux-based switch. There is a PC and two extra DTEs (A, B) available.
+Now you can press the key to switch which DTE is connected to the PC.</p>
+<p>I really love this example because it explains why the network nerds use &ldquo;switch&rdquo; as a term. This is a basic UART switch, with the same mechanisms behind L2 switch and L3 switch in complex computer networks.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-systemverilog" data-lang="systemverilog"><span class="line"><span class="cl"><span class="k">module</span> <span class="n">uart_switch</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="k">input</span> <span class="k">logic</span> <span class="n">clock_i</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="k">input</span> <span class="k">logic</span> <span class="n">reset_ni</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="k">input</span> <span class="k">logic</span> <span class="n">key_i</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">uart_io</span><span class="p">.</span><span class="n">dce</span> <span class="n">pc</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">uart_io</span><span class="p">.</span><span class="n">dce</span> <span class="n">a</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">uart_io</span><span class="p">.</span><span class="n">dce</span> <span class="n">b</span>
+</span></span><span class="line"><span class="cl"><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">index</span> <span class="o">=</span> <span class="mh">1</span><span class="mb">&#39;b0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">logic</span> <span class="n">last_key</span> <span class="o">=</span> <span class="mh">1</span><span class="mb">&#39;b0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">always</span> <span class="p">@</span> <span class="p">(</span><span class="k">posedge</span> <span class="n">clock_i</span><span class="p">,</span> <span class="k">negedge</span> <span class="n">reset_ni</span><span class="p">)</span> <span class="k">begin</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">reset_ni</span><span class="p">)</span> <span class="k">begin</span>
+</span></span><span class="line"><span class="cl">            <span class="n">index</span> <span class="o">&lt;=</span> <span class="mh">1</span><span class="mb">&#39;b0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">end</span>
+</span></span><span class="line"><span class="cl">        <span class="k">else</span> <span class="k">begin</span>
+</span></span><span class="line"><span class="cl">            <span class="k">if</span> <span class="p">(</span><span class="n">key_i</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">last_key</span><span class="p">)</span> <span class="k">begin</span>
+</span></span><span class="line"><span class="cl">                <span class="n">index</span> <span class="o">&lt;=</span> <span class="o">!</span><span class="n">index</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">            <span class="k">end</span>
+</span></span><span class="line"><span class="cl">            <span class="n">last_key</span> <span class="o">&lt;=</span> <span class="n">key_i</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">end</span>
+</span></span><span class="line"><span class="cl">    <span class="k">end</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">uart_mux</span> <span class="n">mux</span> <span class="p">(</span><span class="n">pc</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">index</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">endmodule</span><span class="o">:</span> <span class="n">uart_switch</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="complete-example">Complete Example</h2>
+<p>Check <a href="/2024/06/10/understanding-dte-dce-systemverilog-s-perspective/alphabet.sv">alphabet.sv</a> to see a complete example. The top module is shown as follows:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-systemverilog" data-lang="systemverilog"><span class="line"><span class="cl"><span class="k">module</span> <span class="n">top</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="k">input</span> <span class="k">logic</span> <span class="n">clock_i</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="k">input</span> <span class="k">logic</span> <span class="n">reset_ni</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="k">input</span> <span class="k">logic</span> <span class="n">key_i</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">uart_io</span><span class="p">.</span><span class="n">dce</span> <span class="n">uart</span>
+</span></span><span class="line"><span class="cl"><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">uart_io</span> <span class="n">uart_uppercase</span> <span class="p">();</span>
+</span></span><span class="line"><span class="cl">    <span class="n">alphabet_generator</span> <span class="p">#(.</span><span class="n">BASE</span><span class="p">(</span><span class="s">&#34;A&#34;</span><span class="p">))</span> <span class="n">uppercase</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="p">.</span><span class="n">clock_i</span><span class="p">(</span><span class="n">clock_i</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">        <span class="p">.</span><span class="n">reset_ni</span><span class="p">(</span><span class="n">reset_ni</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">        <span class="p">.</span><span class="n">uart</span><span class="p">(</span><span class="n">uart_uppercase</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">uart_io</span> <span class="n">uart_lowercase</span> <span class="p">();</span>
+</span></span><span class="line"><span class="cl">    <span class="n">alphabet_generator</span> <span class="p">#(.</span><span class="n">BASE</span><span class="p">(</span><span class="s">&#34;a&#34;</span><span class="p">))</span> <span class="n">lowercase</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="p">.</span><span class="n">clock_i</span><span class="p">(</span><span class="n">clock_i</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">        <span class="p">.</span><span class="n">reset_ni</span><span class="p">(</span><span class="n">reset_ni</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">        <span class="p">.</span><span class="n">uart</span><span class="p">(</span><span class="n">uart_lowercase</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">uart_switch</span> <span class="n">switch</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="p">.</span><span class="n">clock_i</span><span class="p">(</span><span class="n">clock_i</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">        <span class="p">.</span><span class="n">reset_ni</span><span class="p">(</span><span class="n">reset_ni</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">        <span class="p">.</span><span class="n">key_i</span><span class="p">(</span><span class="n">key_i</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">        <span class="p">.</span><span class="n">pc</span><span class="p">(</span><span class="n">uart</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">        <span class="p">.</span><span class="n">a</span><span class="p">(</span><span class="n">uart_uppercase</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">        <span class="p">.</span><span class="n">b</span><span class="p">(</span><span class="n">uart_lowercase</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">endmodule</span><span class="o">:</span> <span class="n">top</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Having 2 alphabet generators, one is uppercase while the other is lowercase, users can switch the generator after press the key. Remember to change the clock frequency based on your own boards.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-systemverilog" data-lang="systemverilog"><span class="line"><span class="cl"><span class="k">module</span> <span class="n">alphabet_generator</span> <span class="p">#(</span>
+</span></span><span class="line"><span class="cl">    <span class="k">parameter</span> <span class="k">byte</span> <span class="n">BASE</span> <span class="o">=</span> <span class="s">&#34;A&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="k">parameter</span> <span class="k">longint</span> <span class="k">unsigned</span> <span class="n">CLOCK</span> <span class="o">=</span> <span class="mh">12</span><span class="n">_000_000</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="k">parameter</span> <span class="k">longint</span> <span class="k">unsigned</span> <span class="n">DIVISOR</span> <span class="o">=</span> <span class="p">(</span><span class="n">CLOCK</span> <span class="o">/</span> <span class="mh">9</span><span class="n">_600</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="k">input</span> <span class="k">logic</span> <span class="n">clock_i</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="k">input</span> <span class="k">logic</span> <span class="n">reset_ni</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">uart_io</span><span class="p">.</span><span class="n">dte</span> <span class="n">uart</span>
+</span></span><span class="line"><span class="cl"><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">...</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><center>
+<figure><img src="/2024/06/10/understanding-dte-dce-systemverilog-s-perspective/minicom.png"><figcaption>
+      <h4>Result</h4>
+    </figcaption>
+</figure>
+
+</center>
+<h1 id="conclusion">Conclusion</h1>
+<p>The concepts of DTE &amp; DCE are invented to clarify the wires&rsquo; directions in communications interface.
+But DTEs are dominant today and <code>TXD</code> <code>RXD</code> on DTEs convey a more natural meaning, so people care less about these concepts, and always use some kind of null MODEM.</p>
+<p>Properly making use of these concepts in digital design makes unification possible and produces more elegant HDL code.</p>
+
+    </article>
+  </main>
+  
+
+
+
+
+
+<div id="comment"></div>
+
+
+
+
+
+
+
+
+
+
+<div id="disqus_thread" class="mt-8 mb-8"></div>
+<script type="text/javascript">
+    
+    
+    if (window.location.hostname == "localhost") {
+        
+        
+    } else {
+        const dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+
+        const disqus_shortname = 'y5c4l3';
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        document.getElementById("comment").appendChild(dsq);
+    }
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by
+        Disqus.</a></noscript>
+
+
+
+</div>
+
+
+  <footer class="mt-8 mb-8">
+  <div class="container mx-auto">
+    <div class="mt-8 flex justify-between items-center">
+      <p class="mt-0 text-sm">
+        © 2024 y5c4l3 |
+        <a href="https://gohugo.io" target="_blank" rel="noopener noreferrer">Hugo</a> on
+        <a href="https://github.com/mivinci/hugo-theme-minima" target="_blank" rel="noopener noreferrer">Minima</a>
+      </p>
+      <p class="flex items-center mt-0">
+        
+          <a class="icon ml-1 mr-1" href="mailto:y5c4l3@proton.me" title="email">
+          
+            <svg fill="#63636f" width="22" height="22" viewBox="0 0 24 24"><path d="M3 3h18a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm9.06 8.683L5.648 6.238L4.353 7.762l7.72 6.555l7.581-6.56l-1.308-1.513l-6.285 5.439z"/></svg>
+          
+          </a>
+        
+          <a class="icon ml-1 mr-1" href="https://github.com/y5c4l3" title="github">
+          
+            <svg fill="#63636f" width="18" role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>GitHub</title><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+          
+          </a>
+        
+          <a class="icon ml-1 mr-1" href="/index.xml" title="rss">
+          
+            <svg fill="#63636f" t="1626591563876" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1984" width="18" height="16"><path d="M128 768a128 128 0 1 0 0 256 128 128 0 0 0 0-256zM0 368v176c265.104 0 480 214.912 480 480h176c0-362.32-293.696-656-656-656zM0 0v176c468.336 0 848 379.664 848 848h176C1024 458.464 565.536 0 0 0z" p-id="1985"></path></svg>
+          
+          </a>
+        
+      </p>
+    </div>
+  </div>
+</footer>
+</body>
+
+</html>

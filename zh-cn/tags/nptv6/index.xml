@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Nptv6 on Y5C4L3</title>
+    <link>https://y5c4l3.net/zh-cn/tags/nptv6/</link>
+    <description>Recent content in Nptv6 on Y5C4L3</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <copyright>© 2024 y5c4l3</copyright>
+    <lastBuildDate>Tue, 15 Aug 2023 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://y5c4l3.net/zh-cn/tags/nptv6/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>H3C 企业路由器的 NPTv6 相关配置</title>
+      <link>https://y5c4l3.net/zh-cn/2023/08/15/configuring-nptv6-on-h3c-routers/</link>
+      <pubDate>Tue, 15 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>https://y5c4l3.net/zh-cn/2023/08/15/configuring-nptv6-on-h3c-routers/</guid>
+      <description>简介 IPv6 作为接替 IPv4 的下一代 IP 技术，其全面应用的时机还并不成熟，这主要是源于基础设施（软、硬件）落后、相关规范不完善、ISP 接入手段不周全，以及应用开发者的意识薄弱等问题.&#xA;在家庭场景中，许多 ISP 通过 DHCPv6 PD 的方式（往往在 PPPoE 之上）为终端用户分配一个前缀.&#xA;即使前缀是动态的（每次拨号或每天变化），用户只要用（唯一）一个支持双栈的路由器，这仍然是非常可行的. 如下图所示，家庭用户在 ONU 后面设置无线路由器.&#xA;简化拓扑 对于一个双栈路由器，建立互联网访问的步骤包括：&#xA;路由器与 ISP 建立 PPPoE 会话，并获取分配的 IPv4 端点地址.&#xA;路由器从 ISP PPPoE 对等方发送的 ICMPv6 RA 中配置其 IPv6 SLAAC 地址. （RA 包含前缀 240E:38F:8765:4321::/64）&#xA;路由器启动带有 IA_PD 选项的有状态 DHCPv6 客户端，并被委派前缀 240E:388:1234:1200::/56.&#xA;然后，路由器将向所有客户端发送 ICMPv6 RA，告诉他们拥有一个 IPv6 子网 240E:388:1234:1200::/56，此后所有客户端都将启动 SLAAC 配置，获得一个可公开访问的 IPv6 地址.&#xA;（值得注意的是，以上所有涉及 SLAAC 的步骤，都可替换为有状态 DHCPv6. ）&#xA;如果任何用户要将网络划分为不同的 VLAN，则动态前缀将挑战整个网络. 由于许多设备不支持动态前缀本地化或无法处理前缀失效的情况，因此我们必须稳定地址分配.&#xA;本文介绍了 IPv6 中“私有网络”地址空间以及在 H3C 路由器上配置 NPTv6 的步骤.</description>
+    </item>
+  </channel>
+</rss>

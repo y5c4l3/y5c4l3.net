@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on Y5C4L3</title>
+    <link>https://y5c4l3.net/zh-cn/post/</link>
+    <description>Recent content in Posts on Y5C4L3</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <copyright>© 2024 y5c4l3</copyright>
+    <lastBuildDate>Mon, 10 Jun 2024 23:27:07 +0800</lastBuildDate>
+    <atom:link href="https://y5c4l3.net/zh-cn/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>深入理解 DTE &amp; DCE：SystemVerilog 的视角</title>
+      <link>https://y5c4l3.net/zh-cn/2024/06/10/understanding-dte-dce-systemverilog-s-perspective/</link>
+      <pubDate>Mon, 10 Jun 2024 23:27:07 +0800</pubDate>
+      <guid>https://y5c4l3.net/zh-cn/2024/06/10/understanding-dte-dce-systemverilog-s-perspective/</guid>
+      <description>Intro RS-232 是一个通信中常见的电气接口标准，现在常以 DE-9 的物理端子相互连接，在其之上几乎总是运行 UART. 但当我们细看其标准 TIA/EIA-232-F 时， 就会发现一些诸如 DTE 与 DCE奇怪的概念. 这些概念一般就出现在 TIA 发布的规范中.&#xA;网上搜一下 DTE 与 DCE，总是能看到有人将 PC 与 MODEM 通过 PSTN 拨号上网的时代搬出来，并断言&#xA;PC 是 DTE 而 MODEM 是 DCE.&#xA;Dial-up Internet Access 然而那个时代离现在似乎有点远，就好像在说这些概念是被历史抛弃了吗？是也不是.&#xA;即使当今的嵌入式开发者在使用 TTL 电平的 UART 时碰到一些纯软件问题，他们可能还是会在一些设备文档中不经意之间跟这些术语打交道.&#xA;本文将探讨区分 DTE 与 DCE 背后的动机，以及这些概念在当今是怎么被弱化的，并展示在 SystemVerilog 数字设计时合理运用这些概念可能带来的好处.&#xA;动机 因为我们要在设备之间定义一种接口，所以才创造出了 DTE 与 DCE 的概念.&#xA;接口就是一捆有方向的线 这么说可能会有瑕疵. 以 I2C 为例，其中就有双向的数据总线，但考虑任一时刻，数据线的方向总是确定的，因为规范中对于信号时序是良定义的.&#xA;我们可以看一下 SPI 的接口定义.&#xA;SPI 接口 含义 方向 CS 片选 主设备 → 从设备 SCLK 串行时钟 主设备 → 从设备 MOSI 主设备的输出，从设备的输入 主设备 → 从设备 MISO 主设备的输入，从设备的输出 从设备 → 主设备 这里的关键点就是，为了区分信号的方向，标准必须将设备进行某种分类，然后才能定义它们之间的数据流向.</description>
+    </item>
+    <item>
+      <title>分布式 CADO-NFS 还原 RSA-512 密钥</title>
+      <link>https://y5c4l3.net/zh-cn/2023/08/19/recovering-rsa-key-pair-with-cado-nfs/</link>
+      <pubDate>Sat, 19 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>https://y5c4l3.net/zh-cn/2023/08/19/recovering-rsa-key-pair-with-cado-nfs/</guid>
+      <description>简介 RSA 是目前全世界使用最广泛的公钥密码体系. 公钥密码体系中，有两类密钥：私钥与公钥. 私钥是由算法生成的，并由操作者妥善保管. 公钥是从私钥推导而出的，可以公开发布给任何人. 公钥及其对应的私钥为一对密钥.&#xA;RSA 密钥的大小指的是 RSA 加密或解密运算中模的长度（按 bit 计算），它决定了密钥的整体安全性. 截至 2023 年 8 月，推荐的最小模长为 2048 位. 不过总有开发者罔顾安全性最佳实践，仍然在实际项目中使用 512 位 RSA 密钥.&#xA;本文将演示如何使用 CADO-NFS 将 RSA-512 的公钥恢复成 PKCS#1 / PKCS#8 格式的私钥.&#xA;免责声明: 本文仅供教育目的，作者不支持或鼓励任何非法活动. 本文提供的信息仅供参考，不应用于任何非法活动. 作者不对滥用本文提供的信息所造成的后果负责.&#xA;RSA 小复习 形式化表述 选择两个素数 $p, q$ 将 $N:=pq$ 作为密钥的模.&#xA;计算 $\lambda(N)=\lambda(pq)=\operatorname{lcm}(p-1,q-1)$.&#xA;这里 $\lambda(n)$ is Carmichael 函数, 定义见 $\eqref{carmichael}$.&#xA;$$ \begin{equation} \lambda(n):=\min\{m&amp;gt;0: \forall a \in{}\mathbf{R}^*_n, a^m\equiv 1\pmod n\}\label{carmichael} \end{equation} $$&#xA;其中 $\mathbf{R}^*_{n}{}:= \{i\in{}\mathbf{R}_n: \gcd(n, i) = 1\}$ 是模 $n$ 的简化剩余系.</description>
+    </item>
+    <item>
+      <title>H3C 企业路由器的 NPTv6 相关配置</title>
+      <link>https://y5c4l3.net/zh-cn/2023/08/15/configuring-nptv6-on-h3c-routers/</link>
+      <pubDate>Tue, 15 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>https://y5c4l3.net/zh-cn/2023/08/15/configuring-nptv6-on-h3c-routers/</guid>
+      <description>简介 IPv6 作为接替 IPv4 的下一代 IP 技术，其全面应用的时机还并不成熟，这主要是源于基础设施（软、硬件）落后、相关规范不完善、ISP 接入手段不周全，以及应用开发者的意识薄弱等问题.&#xA;在家庭场景中，许多 ISP 通过 DHCPv6 PD 的方式（往往在 PPPoE 之上）为终端用户分配一个前缀.&#xA;即使前缀是动态的（每次拨号或每天变化），用户只要用（唯一）一个支持双栈的路由器，这仍然是非常可行的. 如下图所示，家庭用户在 ONU 后面设置无线路由器.&#xA;简化拓扑 对于一个双栈路由器，建立互联网访问的步骤包括：&#xA;路由器与 ISP 建立 PPPoE 会话，并获取分配的 IPv4 端点地址.&#xA;路由器从 ISP PPPoE 对等方发送的 ICMPv6 RA 中配置其 IPv6 SLAAC 地址. （RA 包含前缀 240E:38F:8765:4321::/64）&#xA;路由器启动带有 IA_PD 选项的有状态 DHCPv6 客户端，并被委派前缀 240E:388:1234:1200::/56.&#xA;然后，路由器将向所有客户端发送 ICMPv6 RA，告诉他们拥有一个 IPv6 子网 240E:388:1234:1200::/56，此后所有客户端都将启动 SLAAC 配置，获得一个可公开访问的 IPv6 地址.&#xA;（值得注意的是，以上所有涉及 SLAAC 的步骤，都可替换为有状态 DHCPv6. ）&#xA;如果任何用户要将网络划分为不同的 VLAN，则动态前缀将挑战整个网络. 由于许多设备不支持动态前缀本地化或无法处理前缀失效的情况，因此我们必须稳定地址分配.&#xA;本文介绍了 IPv6 中“私有网络”地址空间以及在 H3C 路由器上配置 NPTv6 的步骤.</description>
+    </item>
+    <item>
+      <title>你好，世界！</title>
+      <link>https://y5c4l3.net/zh-cn/2023/01/31/hello-world/</link>
+      <pubDate>Tue, 31 Jan 2023 15:09:05 +0000</pubDate>
+      <guid>https://y5c4l3.net/zh-cn/2023/01/31/hello-world/</guid>
+      <description>你好，世界！</description>
+    </item>
+  </channel>
+</rss>
